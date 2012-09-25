@@ -7,7 +7,7 @@ sleepTime         = 0.1
 coolantTime       = 5
 fuelTime          = 10
 checkTicks        = 10
-reactorsEnabled   = {1}
+reactorsEnabled   = {1, 2}
 reactorCount      = 2
 monitorClientIds  = {45}
 
@@ -42,17 +42,18 @@ table.insert(wireTriggers, {
 })
 
 -- Internal variables
-debugOn    = false                      -- Debug mode, cmd argument
-dryRun     = false                      -- Don't send any signals, cmd argument
-_argv      = { ... }                    -- Cmd arguments
-_ctrl      = sensors.getController()    -- Sensor controller
-_tick      = 0                          -- For checking contents
-_tick2     = 0                          -- For button delay
-_statusMsg = {}                         -- Reactor status message(s), see main
-_inQueue   = {}                         -- Entities in queue, see main
-_running   = true                       -- Loop running ?
-_started   = false                      -- Button clicked once ?
-_alarm     = false
+debugOn      = false                      -- Debug mode, cmd argument
+dryRun       = false                      -- Don't send any signals, cmd argument
+_argv        = { ... }                    -- Cmd arguments
+_ctrl        = sensors.getController()    -- Sensor controller
+_tick        = 0                          -- For checking contents
+_tick2       = 0                          -- For button delay
+_statusMsg   = {}                         -- Reactor status message(s), see main
+_inQueue     = {}                         -- Entities in queue, see main
+_overHeated  = {}
+_running     = true                       -- Loop running ?
+_started     = false                      -- Button clicked once ?
+_alarm       = false
 
 -- 
 -- Helper functions
@@ -301,19 +302,23 @@ function pollReactor(id, runcheck)
         soundAlarm(id)
         stopReactor(id, true)
         r = false
+        _overHeated[id] = true
       end
-    --else
-    --
+    else
+
       -- Check environment
-    --  if i.heat < maxHeat then
-    --    for re = 1, #reactorsEnabled do
-    --      if reactorsEnabled[re] == id then
-    --        startReactor(id)
-    --        r = false
-    --        break
-    --      end
-    --    end
-    --  end -- if
+      if _overHeated[id] == true then
+        if i.heat < maxHeat then
+          for re = 1, #reactorsEnabled do
+            if reactorsEnabled[re] == id then
+              startReactor(id)
+              r = false
+              break
+            end
+          end
+          _overHeated[id] = false
+        end
+      end
 
     end
   end
@@ -332,6 +337,7 @@ term.clear()
 term.setCursorPos(1, 1)
 
 for i = 1, reactorCount do
+  table.insert(_overHeated, false)
   table.insert(_statusMsg, "")
   table.insert(_inQueue, {
     coolant     = 0,
