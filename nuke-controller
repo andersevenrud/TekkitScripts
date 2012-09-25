@@ -303,9 +303,10 @@ function pollReactor(id, runcheck)
         stopReactor(id, true)
         r = false
         _overHeated[id] = true
+      else
+        _overHeated[id] = false
       end
     else
-
       -- Check environment
       if _overHeated[id] == true then
         if i.heat < maxHeat then
@@ -313,10 +314,13 @@ function pollReactor(id, runcheck)
             if reactorsEnabled[re] == id then
               startReactor(id)
               r = false
+
+              if checkReactorState(id) then
+                _overHeated[id] = false
+              end
               break
             end
           end
-          _overHeated[id] = false
         end
       end
 
