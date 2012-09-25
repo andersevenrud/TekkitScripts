@@ -2,34 +2,44 @@
 -- andersevenrud, larsmaehlum
 
 -- Configuration
-pulseTime       = 0.4
-sleepTime       = 0.1
-coolantTime     = 5
-fuelTime        = 10
-checkTicks      = 10
-reactorsEnabled = {1}
-reactorCount    = 2
+pulseTime         = 0.4
+sleepTime         = 0.1
+coolantTime       = 5
+fuelTime          = 10
+checkTicks        = 10
+reactorsEnabled   = {1}
+reactorCount      = 2
+monitorClientIds  = {45}
+
 
 -- Thresholds
-maxCoolant  = 14
-maxFuel     = 40
+maxCoolant  = 10
+maxFuel     = 44
 maxSlots    = 54
 maxHeat     = 2000
 
 -- Peripherals
-wlanOn        = false
+wlanOn        = true
 wlanSide      = "top"
 bundleSide    = "back"
 buttonSide    = "front"
 sensorName    = "Sensor"
 monitorMaxY   = 17
 monitorStartY = 5
-wireTriggers  = {
-  power         = (colors.red),
+wireTriggers  = {}
+
+table.insert(wireTriggers, {
+  power         = colors.red,
   coolant       = colors.lime,
   fuel          = colors.yellow,
   alarm         = colors.orange
-}
+})
+table.insert(wireTriggers, {
+  power         = colors.blue,
+  coolant       = colors.white,
+  fuel          = colors.black,
+  alarm         = colors.orange
+})
 
 -- Internal variables
 debugOn    = false                      -- Debug mode, cmd argument
@@ -72,10 +82,10 @@ function sendMessage(client, message)
   if wlanOn then
     if type(client) == "table" then
       for i = 1, #client do
-        rednet.send(wlanSide, client[i], message)
+        rednet.send(tonumber(client[i]), message)
       end
     else
-      rednet.send(wlanSide, client, message)
+      rednet.send(tonumber(client), message)
     end
   end
 end
@@ -142,7 +152,7 @@ end
 function startReactor(id)
   if not checkReactorState(id) then
     dprint("#"..id.." >>> STARTING REACTOR <<<")
-    sendPulse(wireTriggers.power)
+    sendPulse(wireTriggers[id].power)
   end
 end
 
@@ -156,7 +166,7 @@ function stopReactor(id, heat)
       end
     end
 
-    sendPulse(wireTriggers.power)
+    sendPulse(wireTriggers[id].power)
   end
 end
 
@@ -195,7 +205,7 @@ function pushCoolant(id, count)
   else
     for i = 1, count do
       dprint("#"..id.." >>> PUSHING COOLANT "..i.."/"..count.." <<<")
-      sendPulse(wireTriggers.coolant)
+      sendPulse(wireTriggers[id].coolant)
     end
     _inQueue[id].coolantTime = os.clock() + coolantTime
     return true
@@ -210,8 +220,8 @@ function pushFuel(id, count)
     return false
   else
     for i = 1, count do
-      dprint("#"..id.." >>> PUSHING COOLANT "..i.."/"..count.." <<<")
-      sendPulse(wireTriggers.fuel)
+      dprint("#"..id.." >>> PUSHING FUEL "..i.."/"..count.." <<<")
+      sendPulse(wireTriggers[id].fuel)
     end
     _inQueue[id].fuelTime = os.clock() + fuelTime
     return true
@@ -293,7 +303,7 @@ function pollReactor(id, runcheck)
         r = false
       end
     --else
-
+    --
       -- Check environment
     --  if i.heat < maxHeat then
     --    for re = 1, #reactorsEnabled do
@@ -312,7 +322,7 @@ function pollReactor(id, runcheck)
 end
 
 function soundAlarm(id)
-  --sendPulse(wireTriggers.alarm)
+  --sendPulse(wireTriggers[id].alarm)
 end
 
 -- 
@@ -371,6 +381,8 @@ local tlypos    = lypos
 prints()
 
 while _running do
+  sendMessage(monitorClientIds, _statusMsg[1])
+  sendMessage(monitorClientIds, _statusMsg[2])
 
   cprint(_statusMsg[1], 2)
   cprint(_statusMsg[2], 3)

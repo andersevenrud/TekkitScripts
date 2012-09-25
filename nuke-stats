@@ -1,0 +1,81 @@
+-- Nuclear Power Plant LCD Status Controller
+-- andersevenrud, larsmaehlum
+
+-- Configuration
+clientId = 45
+serverId = 44
+sleepTimeout = 1
+
+-- Peripherals
+wlanOn        = true
+wlanSide      = "left"
+wlanTimeout   = 1
+lcdSide       = "top"
+lcd           = peripheral.wrap(lcdSide)
+
+-- Internal variables
+_running = true
+_lcdWidth, _lcdHeight = lcd.getSize()
+
+-- 
+-- Helper Functions
+-- 
+
+function sendMessage(client, message)
+  if wlanOn then
+    if type(client) == "table" then
+      for i = 1, #client do
+        rednet.send(wlanSide, tonumber(client[i]), message)
+      end
+    else
+      rednet.send(wlanSide, tonumber(client), message)
+    end
+  end
+end
+
+_test = 1
+function handleMessage(message)
+  printl(message, 1, _test)
+
+  _test = _test + 1
+  if _test > 2 then
+    _test = 1
+  end
+end
+
+function printl(msg, x, y)
+  lcd.setCursorPos(x, y)
+  lcd.write(msg)
+end
+
+-- 
+-- Main program
+-- 
+
+term.clear()
+term.setCursorPos(1, 1)
+
+lcd.setTextScale(1.0)
+lcd.clear()
+lcd.setCursorPos(1, 1)
+
+-- Startup
+if wlanOn then
+  rednet.open(wlanSide)
+end
+
+while _running do
+  senderId, message, distance = rednet.receive(wlanTimeout)
+  if senderId then
+    print("#", senderId, " ", distance, "m ", message)
+    if senderId == serverId then
+      handleMessage(message)
+    end
+  end
+
+  os.sleep(sleepTimeout)
+end
+
+if wlanOn then
+  rednet.close(wlanSide)
+end

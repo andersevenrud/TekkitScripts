@@ -9,6 +9,10 @@ Press the input button to activate the power. Press it again to shut down.
 Schematics: nuke-schema.png
 Usage: nuke-controller [(-debugOn true|false), (dryRun true|false)]
 
+# nuke-stats
+Display stats from `nuke-controller`
+Usage: nuke-stats
+
 # dl-script
 Download a file from pastebin.com and save it on the console or disk.
 Usage: dl-script <pastebin-id> <absolute-destination-path>
