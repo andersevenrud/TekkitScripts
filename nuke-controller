@@ -239,54 +239,6 @@ function checkReactorState(id, info)
   return (false)
 end
 
--- 
--- External Systems functions
--- 
-
-function sendPulse(color)
-  if not dryRun then
-    redstone.setBundledOutput(bundleSide, 0)
-    os.sleep(pulseTime)
-    redstone.setBundledOutput(bundleSide, color)
-    os.sleep(pulseTime)
-  end
-end
-
-function pushCoolant(id, count)
-  if not count then count = 1 end
-
-  if  not (_inQueue[id].coolantTime > os.clock()) then
-    for i = 1, count do
-      dprint("#"..id.." >>> PUSHING COOLANT "..i.."/"..count.." <<<")
-      sendPulse(wireTriggers[id].coolant)
-    end
-    _inQueue[id].coolantTime = os.clock() + coolantTime
-
-    return (true)
-  end
-
-  return (false)
-end
-
-function pushFuel(id, count)
-  if not count then count = 1 end
-
-  if  not (_inQueue[id].fuelTime > os.clock()) then
-    for i = 1, count do
-      dprint("#"..id.." >>> PUSHING FUEL "..i.."/"..count.." <<<")
-      sendPulse(wireTriggers[id].fuel)
-    end
-    _inQueue[id].fuelTime = os.clock() + fuelTime
-
-    return (true)
-  end
-
-  return (false)
-end
-
-function pullDepleted()
-end
-
 function _pollReactorCoolant(d, i, id)
   local count = 0
   local wants = 0
@@ -383,6 +335,51 @@ function pollReactor(id, runcheck)
   end
 
   return (r)
+end
+
+-- 
+-- External Systems functions
+-- 
+
+function sendPulse(color)
+  if not dryRun then
+    redstone.setBundledOutput(bundleSide, 0)
+    os.sleep(pulseTime)
+    redstone.setBundledOutput(bundleSide, color)
+    os.sleep(pulseTime)
+  end
+end
+
+function pushCoolant(id, count)
+  if not count then count = 1 end
+
+  if  not (_inQueue[id].coolantTime > os.clock()) then
+    for i = 1, count do
+      dprint("#"..id.." >>> PUSHING COOLANT "..i.."/"..count.." <<<")
+      sendPulse(wireTriggers[id].coolant)
+    end
+    _inQueue[id].coolantTime = os.clock() + coolantTime
+
+    return (true)
+  end
+
+  return (false)
+end
+
+function pushFuel(id, count)
+  if not count then count = 1 end
+
+  if  not (_inQueue[id].fuelTime > os.clock()) then
+    for i = 1, count do
+      dprint("#"..id.." >>> PUSHING FUEL "..i.."/"..count.." <<<")
+      sendPulse(wireTriggers[id].fuel)
+    end
+    _inQueue[id].fuelTime = os.clock() + fuelTime
+
+    return (true)
+  end
+
+  return (false)
 end
 
 function soundAlarm(id)
