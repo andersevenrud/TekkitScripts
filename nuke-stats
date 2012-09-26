@@ -27,6 +27,16 @@ function printl(msg, x, y)
   lcd.write(msg)
 end
 
+function clearConsole()
+  term.clear()
+  term.setCursorPos(1, 1)
+end
+
+function clearLCD()
+  lcd.clear()
+  lcd.setCursorPos(1, 1)
+end
+
 function sendMessage(client, message)
   if wlanOn then
     if type(client) == "table" then
@@ -50,12 +60,9 @@ end
 -- Main program
 -- 
 
-term.clear()
-term.setCursorPos(1, 1)
-
+clearConsole()
 lcd.setTextScale(1.0)
-lcd.clear()
-lcd.setCursorPos(1, 1)
+clearLCD()
 
 -- Startup
 if wlanOn then
@@ -63,6 +70,8 @@ if wlanOn then
 end
 
 while _running do
+  clearLCD()
+
   senderId, message, distance = rednet.receive(wlanTimeout)
   if senderId then
     print("#", senderId, " ", distance, "m ", message)
