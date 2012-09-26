@@ -14,7 +14,7 @@ Schematics: nuke-schema.png
 
 Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
 
-![Power Plant Screenshot](/nuke-controller-screens/2012-09-26_22.18.18.png)
+![Power Plant Screenshot](http://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-26_22.18.18.png)
 
 ## nuke-stats
 Display stats from `nuke-controller`
@@ -23,7 +23,7 @@ This application communicates with `nuke-controller` using serialized data and `
 
 Usage: `nuke-stats`
 
-![Power Plant Status Display Screenshot](/nuke-stats-screens/2012-09-26_22.26.13.png)
+![Power Plant Status Display Screenshot](http://raw.github.com/andersevenrud/TekkitScripts/master/nuke-stats-screens/2012-09-26_22.26.13.png)
 
 ## dl-script
 Download a file from pastebin.com and save it on the console or disk.
