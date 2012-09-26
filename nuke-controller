@@ -56,6 +56,17 @@ _running     = true                       -- Loop running ?
 _started     = false                      -- Button clicked once ?
 _alarm       = false
 
+for i = 1, reactorCount do
+  table.insert(_overHeated, false)
+  table.insert(_statusMsg, "")
+  table.insert(_inQueue, {
+    coolant     = 0,
+    fuel        = 0,
+    coolantTime = 0,
+    fuelTime    = 0
+  })
+end
+
 -- 
 -- Helper functions
 -- 
@@ -74,6 +85,48 @@ function prints()
   term.clear()
   term.setCursorPos(1, 1)
   print("!  C:", tostring(maxCoolant), " F:", tostring(maxFuel), " H:", tostring(maxHeat), " | DRY:", tostring(dryRun))
+end
+
+function parseCmd()
+  local _l = nil
+  for i = 1, #_argv do
+    local _v = _argv[i]
+
+    if (i % 2) == 1 then
+      _l = _v
+    else
+      if _l == "-dryRun" then
+        if _v == "true" then
+          dryRun = true
+        else
+          dryRun = false
+        end
+      elseif _l == "-debugOn" then
+        if _v == "true" then
+          debugOn = true
+        else
+          debugOn = false
+        end
+      end
+    end
+  end
+end
+
+function clearScreen()
+  term.clear()
+  term.setCursorPos(1, 1)
+end
+
+function startNetwork()
+  if wlanOn then
+    rednet.open(wlanSide)
+  end
+end
+
+function stopNetwork()
+  if wlanOn then
+    rednet.close(wlanSide)
+  end
 end
 
 -- 
@@ -202,32 +255,33 @@ end
 function pushCoolant(id, count)
   if not count then count = 1 end
 
-  if  _inQueue[id].coolantTime > os.clock() then
-    return false
-  else
+  if  not (_inQueue[id].coolantTime > os.clock()) then
     for i = 1, count do
       dprint("#"..id.." >>> PUSHING COOLANT "..i.."/"..count.." <<<")
       sendPulse(wireTriggers[id].coolant)
     end
     _inQueue[id].coolantTime = os.clock() + coolantTime
-    return true
+
+    return (true)
   end
 
+  return (false)
 end
 
 function pushFuel(id, count)
   if not count then count = 1 end
 
-  if  _inQueue[id].fuelTime > os.clock() then
-    return false
-  else
+  if  not (_inQueue[id].fuelTime > os.clock()) then
     for i = 1, count do
       dprint("#"..id.." >>> PUSHING FUEL "..i.."/"..count.." <<<")
       sendPulse(wireTriggers[id].fuel)
     end
     _inQueue[id].fuelTime = os.clock() + fuelTime
-    return true
+
+    return (true)
   end
+
+  return (false)
 end
 
 function pullDepleted()
@@ -338,80 +392,35 @@ end
 -- 
 -- Main program
 -- 
-term.clear()
-term.setCursorPos(1, 1)
 
-for i = 1, reactorCount do
-  table.insert(_overHeated, false)
-  table.insert(_statusMsg, "")
-  table.insert(_inQueue, {
-    coolant     = 0,
-    fuel        = 0,
-    coolantTime = 0,
-    fuelTime    = 0
-  })
-end
+local pause = false
+local lxpos = 1
+local lypos = monitorStartY
 
--- Parse command line arguments
-local _l = nil
-for i = 1, #_argv do
-  local _v = _argv[i]
-
-  if (i % 2) == 1 then
-    _l = _v
-  else
-    if _l == "-dryRun" then
-      if _v == "true" then
-        dryRun = true
-      else
-        dryRun = false
-      end
-    elseif _l == "-debugOn" then
-      if _v == "true" then
-        debugOn = true
-      else
-        debugOn = false
-      end
-    end
-  end
-end
-
--- Startup
-if wlanOn then
-  rednet.open(wlanSide)
-end
-
+startNetwork()
+clearScreen()
+parseCmd()
 stopReactors()
-
--- Main Loop
-local pause     = false
-local lxpos     = 1
-local lypos     = monitorStartY
-local tlypos    = lypos
-local message   = ""
-
 prints()
 
 while _running do
-
-  -- Send status report
   sendMessage(monitorClientIds, join(_statusMsg, ";"))
 
+  -- Show core status(es)
   cprint(_statusMsg[1], 2)
   cprint(_statusMsg[2], 3)
   cprint("-------------------------------------------------", 4)
   term.setCursorPos(lxpos, lypos)
 
-  -- Check reactors
+  -- Perform system operations
   for i = 1, reactorCount do
-    pause = pollReactor(i, _started)
+    pause = pollReactor(i, _started) or pause
   end
-
   if pause then
     os.sleep(sleepTime)
   end
 
-  -- Check input
+  -- Check input button(s)
   if _tick2 > 0 then
     _tick2 = _tick2 - 1
   else
@@ -430,13 +439,13 @@ while _running do
   end
 
   -- Make sure display is correct (do not move, always after last input)
-  tlypos = lypos
   lxpos, lypos = term.getCursorPos()
-  if (lypos > monitorMaxY) then -- or (lypos == tlypos) then
+  if (lypos > monitorMaxY) then
     lypos = monitorStartY
     prints()
   end
 
+  -- Prepare for next tick
   _tick = _tick + 1
   if _tick > checkTicks then
     _tick = 0
@@ -444,8 +453,5 @@ while _running do
   pause = false
 end
 
--- Safe Shutdown
 stopReactors()
-if wlanOn then
-  rednet.close(wlanSide)
-end
+stopNetwork()

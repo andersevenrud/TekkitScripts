@@ -50,6 +50,9 @@ function sendMessage(client, message)
 end
 
 function handleMessage(message)
+  clearLCD()
+
+  -- http://lua-users.org/wiki/SplitJoin
   local lines = split(message, ";")
   for i = 1, #lines do
     printl(message, 1, i)
@@ -70,8 +73,6 @@ if wlanOn then
 end
 
 while _running do
-  clearLCD()
-
   senderId, message, distance = rednet.receive(wlanTimeout)
   if senderId then
     print("#", senderId, " ", distance, "m ", message)
