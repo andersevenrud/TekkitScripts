@@ -5,6 +5,7 @@
 -- Configuration
 pulseTime         = 0.4
 sleepTime         = 0.1
+alarmTime         = 0.5
 coolantTime       = 5
 fuelTime          = 10
 checkTicks        = 10
@@ -24,6 +25,7 @@ wlanOn        = true
 wlanSide      = "top"
 bundleSide    = "back"
 buttonSide    = "front"
+alarmSide     = "right"
 sensorName    = "Sensor"
 wireTriggers  = {}
 
@@ -51,7 +53,6 @@ _inQueue     = {}                         -- Entities in queue
 _lastStatus  = {}
 _running     = true                       -- Loop running ?
 _started     = false                      -- Button clicked once ?
-_alarm       = false
 
 for i = 1, reactorCount do
   table.insert(_lastStatus, {info = {}, contents = {}, state = false, overHeated = false, rebootTries = 0})
@@ -331,11 +332,12 @@ function pollReactor(id, runcheck)
 
       -- Check environment
       if i.heat > maxHeat then
-        soundAlarm(id)
+        soundAlarm()
         stopReactor(id, true)
         r = false
         _lastStatus[id].overHeated = true
       else
+        stopAlarm()
         _lastStatus[id].overHeated = false
       end
 
@@ -348,6 +350,7 @@ function pollReactor(id, runcheck)
 
         if checkReactorState(id) then
           _lastStatus[id].overHeated = false
+          stopAlarm()
         else
           _lastStatus[id].rebootTries = _lastStatus[id].rebootTries + 1
         end
@@ -363,12 +366,19 @@ end
 -- External Systems functions
 -- 
 
-function sendPulse(color)
+function checkWire(color)
+  return 
+end
+
+function sendPulse(color, stimeout, etimeout)
+  if not stimeout then stimeout = pulseTime end
+  if not etimeout then etimeout = pulseTime end
+
   if not dryRun then
     redstone.setBundledOutput(bundleSide, 0)
-    os.sleep(pulseTime)
+    os.sleep(stimeout)
     redstone.setBundledOutput(bundleSide, color)
-    os.sleep(pulseTime)
+    os.sleep(etimeout)
   end
 end
 
@@ -404,8 +414,14 @@ function pushFuel(id, count)
   return (false)
 end
 
-function soundAlarm(id)
-  --sendPulse(wireTriggers[id].alarm)
+function soundAlarm(timeout)
+  rs.setOutput(alarmSide, true)
+  os.sleep(timeout or alarmTime)
+  rs.setOutput(alarmSide, false)
+end
+
+function stopAlarm()
+  rs.setOutput(alarmSide, false)
 end
 
 -- 
@@ -424,6 +440,7 @@ startNetwork()
 clearScreen()
 parseCmd()
 stopReactors()
+stopAlarm()
 
 -- 2: Main loop
 while _running do
@@ -466,6 +483,7 @@ while _running do
         dprint(">>> SAFE SHUTDOWN :-) <<<")
         break
       else
+        soundAlarm(0.5)
         _started = true
         startReactors()
       end
@@ -491,3 +509,4 @@ end
 -- 3: Shutdown
 stopReactors()
 stopNetwork()
+stopAlarm()
