@@ -8,6 +8,7 @@ sleepTime         = 0.1
 coolantTime       = 5
 fuelTime          = 10
 checkTicks        = 10
+rebootTries       = 3
 reactorsEnabled   = {1, 2}
 reactorCount      = 2
 monitorClientIds  = {45}
@@ -46,14 +47,16 @@ _argv        = { ... }                    -- Cmd arguments
 _ctrl        = sensors.getController()    -- Sensor controller
 _tick        = 0                          -- For checking contents
 _tick2       = 0                          -- For button delay
-_inQueue     = {}                         -- Entities in queue, see main
+_inQueue     = {}                         -- Entities in queue
 _overHeated  = {}
 _lastStatus  = {}
+_rebootTries = {}
 _running     = true                       -- Loop running ?
 _started     = false                      -- Button clicked once ?
 _alarm       = false
 
 for i = 1, reactorCount do
+  table.insert(_rebootTries, 0)
   table.insert(_overHeated, false)
   table.insert(_lastStatus, {info = {}, contents = {}, state = false})
   table.insert(_inQueue, {coolantTime = 0, fuelTime = 0})
@@ -62,6 +65,17 @@ end
 -- 
 -- Helper functions
 -- 
+
+function inArray(k, o)
+  local found = false
+  for re = 1, #o do
+    if o[re] == k then
+      found = true
+      break
+    end
+  end
+  return (found)
+end
 
 function serialize(o)
   local s = ""
@@ -285,15 +299,7 @@ function pollReactor(id, runcheck)
   _lastStatus[id].state     = e
 
   -- Skip if not enabled
-  local found = false
-  for re = 1, #reactorsEnabled do
-    if reactorsEnabled[re] == id then
-      found = true
-      break
-    end
-  end
-
-  if not found then
+  if not inArray(id, reactorsEnabled) then
     return (r)
   end
 
@@ -327,21 +333,18 @@ function pollReactor(id, runcheck)
       else
         _overHeated[id] = false
       end
+
+      _rebootTries[id] = 0
     else
       -- Check environment
-      if _overHeated[id] == true then
-        if i.heat < maxHeat then
-          for re = 1, #reactorsEnabled do
-            if reactorsEnabled[re] == id then
-              startReactor(id)
-              r = false
+      if _overHeated[id] == true and (_rebootTries[id] <= rebootTries) then
+        startReactor(id)
+        r = false
 
-              if checkReactorState(id) then
-                _overHeated[id] = false
-              end
-              break
-            end
-          end
+        if checkReactorState(id) then
+          _overHeated[id] = false
+        else
+          _rebootTries[id] = _rebootTries[id] + 1
         end
       end
 
