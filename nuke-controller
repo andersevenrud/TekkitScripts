@@ -235,7 +235,7 @@ end
 
 function startReactor(id)
   if not checkReactorState(id) then
-    dprint("#"..id.." >>> STARTING REACTOR <<<")
+    dprint(string.format("STARTING REACTOR #%d", id))
     sendPulse(wireTriggers[id].power)
   end
 end
@@ -244,9 +244,9 @@ function stopReactor(id, heat)
   if checkReactorState(id) then
     if _started then
       if heat then
-        dprint("#"..id.." >>> STOPPING REACTOR -- WAY TO HOT! <<<")
+        dprint(string.format("OVERHEATING!!! STOPPING REACTOR #%d", id))
       else
-        dprint("#"..id.." >>> STOPPING REACTOR <<<")
+        dprint(string.format("STOPPING REACTOR #%d", id))
       end
     end
 
@@ -384,7 +384,7 @@ function pushCoolant(id, count)
 
   if  not (_inQueue[id].coolantTime > os.clock()) then
     for i = 1, count do
-      dprint("#"..id.." >>> PUSHING COOLANT "..i.."/"..count.." <<<")
+      dprint(string.format("PUSHING COOLANT %d/%d TO REACTOR #%d", i, count, id))
       sendPulse(wireTriggers[id].coolant)
     end
     _inQueue[id].coolantTime = os.clock() + coolantTime
@@ -400,7 +400,7 @@ function pushFuel(id, count)
 
   if  not (_inQueue[id].fuelTime > os.clock()) then
     for i = 1, count do
-      dprint("#"..id.." >>> PUSHING FUEL "..i.."/"..count.." <<<")
+      dprint(string.format("PUSHING FUEL %d/%d TO REACTOR #%d", i, count, id))
       sendPulse(wireTriggers[id].fuel)
     end
     _inQueue[id].fuelTime = os.clock() + fuelTime
@@ -482,7 +482,7 @@ while _running do
         dprint(">>> SAFE SHUTDOWN :-) <<<")
         break
       else
-        soundAlarm(0.5)
+        soundAlarm(1.0)
         _started = true
         startReactors()
       end
