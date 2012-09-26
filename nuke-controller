@@ -12,7 +12,6 @@ reactorsEnabled   = {1, 2}
 reactorCount      = 2
 monitorClientIds  = {45}
 
-
 -- Thresholds
 maxCoolant  = 10
 maxFuel     = 44
@@ -25,8 +24,6 @@ wlanSide      = "top"
 bundleSide    = "back"
 buttonSide    = "front"
 sensorName    = "Sensor"
-monitorMaxY   = 17
-monitorStartY = 5
 wireTriggers  = {}
 
 table.insert(wireTriggers, {
@@ -49,19 +46,17 @@ _argv        = { ... }                    -- Cmd arguments
 _ctrl        = sensors.getController()    -- Sensor controller
 _tick        = 0                          -- For checking contents
 _tick2       = 0                          -- For button delay
-_statusMsg   = {}                         -- Reactor status message(s), see main
 _inQueue     = {}                         -- Entities in queue, see main
 _overHeated  = {}
+_lastStatus  = {}
 _running     = true                       -- Loop running ?
 _started     = false                      -- Button clicked once ?
 _alarm       = false
 
 for i = 1, reactorCount do
   table.insert(_overHeated, false)
-  table.insert(_statusMsg, "")
+  table.insert(_lastStatus, {info = {}, contents = {}, state = false})
   table.insert(_inQueue, {
-    coolant     = 0,
-    fuel        = 0,
     coolantTime = 0,
     fuelTime    = 0
   })
@@ -70,6 +65,26 @@ end
 -- 
 -- Helper functions
 -- 
+
+function serialize(o)
+  local s = ""
+
+  if type(o) == "number" then
+    s = s..o
+  elseif type(o) == "string" then
+    s = s..string.format("%q", o)
+  elseif type(o) == "table" then
+    s = s.."{\n"
+    for k,v in pairs(o) do
+      s = s.."  [" .. serialize(k) .."] = " .. serialize(v) .. ",\n"
+    end
+    s = s.."}\n"
+  else
+    error("cannot serialize a " .. type(o))
+  end
+
+  return (s)
+end
 
 function dprint(msg)
   print(os.time() * 1000, " ", msg)
@@ -268,7 +283,9 @@ function pollReactor(id, runcheck)
   local c = nil
   local r = true
 
-  _statusMsg[id] = "#"..tostring(id).." C:"..tostring(d.coolant).."+"..tostring(_inQueue[id].coolant).." F:"..tostring(d.fuel).."+"..tostring(_inQueue[id].fuel).." D:"..tostring(d.depleted).." | H:"..tostring(i.heat).. " O:"..tostring(i.output).." | ON: "..tostring(e)
+  _lastStatus[id].info      = i
+  _lastStatus[id].contents  = d
+  _lastStatus[id].state     = e
 
   -- Skip if not enabled
   local found = false
@@ -390,26 +407,43 @@ end
 -- Main program
 -- 
 
-local pause = false
-local lxpos = 1
-local lypos = monitorStartY
+local sx, sy = term.getSize()
+local starty = (reactorCount + 3)
+local maxy   = (sy - starty)
+local pause  = false
+local inited = false
+local lxpos  = 1
+local lypos  = starty
 
+-- 1: Bootup
 startNetwork()
 clearScreen()
 parseCmd()
 stopReactors()
-prints()
 
+-- 2: Main loop
 while _running do
-  sendMessage(monitorClientIds, join(_statusMsg, ";"))
 
-  -- Show core status(es)
-  cprint(_statusMsg[1], 2)
-  cprint(_statusMsg[2], 3)
-  cprint("-------------------------------------------------", 4)
+  -- 2.1: Handle last status
+  if inited then
+    sendMessage(monitorClientIds, serialize(_lastStatus))
+
+    for i = 1, reactorCount do
+      local d = _lastStatus[i].contents
+      local i = _lastStatus[i].info
+      local e = _lastStatus[i].state
+      local msg = "#"..tostring(i).." C:"..tostring(d.coolant).." F:"..tostring(d.fuel).." D:"..tostring(d.depleted).." | H:"..tostring(i.heat).. " O:"..tostring(i.output).." | ON: "..tostring(e)
+
+      cprint(msg, 1 + i)
+    end
+  else
+    prints()
+  end
+
+  cprint("-------------------------------------------------", (reactorCount + 2))
   term.setCursorPos(lxpos, lypos)
 
-  -- Perform system operations
+  -- 2.2: Perform system operations
   for i = 1, reactorCount do
     pause = pollReactor(i, _started) or pause
   end
@@ -417,7 +451,7 @@ while _running do
     os.sleep(sleepTime)
   end
 
-  -- Check input button(s)
+  -- 2.3: Check input button(s)
   if _tick2 > 0 then
     _tick2 = _tick2 - 1
   else
@@ -435,20 +469,22 @@ while _running do
     end
   end
 
-  -- Make sure display is correct (do not move, always after last input)
+  -- 2.4: Check display and prepare for next tick
   lxpos, lypos = term.getCursorPos()
-  if (lypos > monitorMaxY) then
-    lypos = monitorStartY
+  if (lypos > maxy) then
+    lypos = starty
     prints()
   end
 
-  -- Prepare for next tick
   _tick = _tick + 1
   if _tick > checkTicks then
     _tick = 0
   end
+
   pause = false
+  inited = true
 end
 
+-- 3: Shutdown
 stopReactors()
 stopNetwork()

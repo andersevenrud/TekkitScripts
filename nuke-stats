@@ -22,6 +22,10 @@ _lcdWidth, _lcdHeight = lcd.getSize()
 -- Helper Functions
 -- 
 
+function deserialize(o)
+  return loadstring(o)
+end
+
 function printl(msg, x, y)
   lcd.setCursorPos(x, y)
   lcd.write(msg)
@@ -52,10 +56,21 @@ end
 function handleMessage(message)
   clearLCD()
 
-  -- http://lua-users.org/wiki/SplitJoin
-  local lines = split(message, ";")
-  for i = 1, #lines do
-    printl(message, 1, i)
+  local data = deserialize(message)
+  local x    = 1
+  for i = 1, #data do
+    local contents = data[i].contents
+    local info     = data[i].info
+    local state    = data[i].state
+
+    printl("Core #1 - ON: "..tostring(state), x, 1)
+    printl("Output:   "..info.output, x, 2)
+    printl("Heat:     "..info.heat, x, 3)
+    printl("Coolant:  "..contents.coolant, x, 4)
+    printl("Fuel:     "..contents.fuel, x, 5)
+    printl("Depleted: "..contents.depleted, x, 6)
+
+    x = x + 16
   end
 end
 
