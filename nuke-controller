@@ -422,7 +422,6 @@ end
 
 local sx, sy = term.getSize()
 local starty = (reactorCount + 3)
-local maxy   = (sy - reactorCount)
 local pause  = false
 local inited = false
 local lxpos  = 1
@@ -483,7 +482,7 @@ while _running do
 
   -- 2.4: Check display and prepare for next tick
   lxpos, lypos = term.getCursorPos()
-  if (lypos > maxy) then
+  if (lypos > sy) then
     lypos = starty
     prints()
   end
