@@ -9,7 +9,7 @@ sleepTimeout = 1
 
 -- Peripherals
 wlanOn        = true
-wlanSide      = "left"
+wlanSide      = "bottom"
 wlanTimeout   = sleepTimeout
 lcdSide       = "top"
 lcd           = peripheral.wrap(lcdSide)

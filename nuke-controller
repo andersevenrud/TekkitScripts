@@ -84,6 +84,8 @@ function serialize(o)
     s = s..o
   elseif type(o) == "string" then
     s = s..string.format("%q", o)
+  elseif type(o) == "boolean" then
+    s = s..tostring(o)
   elseif type(o) == "table" then
     s = s.."{\n"
     for k,v in pairs(o) do
@@ -98,7 +100,7 @@ function serialize(o)
 end
 
 function dprint(msg)
-  print(os.time() * 1000, " ", msg)
+  print(string.format("%d %s", os.time() * 1000, msg))
 end
 
 function cprint(msg, y)
@@ -110,7 +112,8 @@ end
 function prints()
   term.clear()
   term.setCursorPos(1, 1)
-  print("!  C:", tostring(maxCoolant), " F:", tostring(maxFuel), " H:", tostring(maxHeat), " | DRY:", tostring(dryRun))
+  local msg = string.format("!  C:%02d F:%02d S:%02d | H:%04d O:---- | DRY:%s", maxCoolant, maxFuel, maxSlots, maxHeat, tostring(dryRun))
+  print(msg)
 end
 
 function parseCmd()
@@ -143,18 +146,6 @@ function clearScreen()
   term.setCursorPos(1, 1)
 end
 
-function startNetwork()
-  if wlanOn then
-    rednet.open(wlanSide)
-  end
-end
-
-function stopNetwork()
-  if wlanOn then
-    rednet.close(wlanSide)
-  end
-end
-
 -- 
 -- Networking
 -- 
@@ -171,6 +162,18 @@ function sendMessage(client, message)
   end
 end
 
+function startNetwork()
+  if wlanOn then
+    rednet.open(wlanSide)
+  end
+end
+
+function stopNetwork()
+  if wlanOn then
+    rednet.close(wlanSide)
+  end
+end
+
 -- 
 -- Reactor functions
 -- 
@@ -178,15 +181,19 @@ end
 function getReactorInfo(id)
   local p = "Reactor"
   local t = sensors.getAvailableTargetsforProbe(_ctrl, sensorName, p)
-  local d = sensors.getSensorReadingAsDict(_ctrl, sensorName, t[id], p)
+  local d = nil
 
-  if not d then
-    return {
-      heat = 0,
-      size = 0,
-      addedToEnergyNet = false,
-      lastOutput = 0,
-      output = 0
+  if t and t[id] then
+    d = sensors.getSensorReadingAsDict(_ctrl, sensorName, t[id], p)
+  end
+
+  if type(d) ~= "table" or (type(d.output) == "nil") then
+    d = {
+      heat              = 0,
+      size              = 0,
+      addedToEnergyNet  = false,
+      lastOutput        = 0,
+      output            = 0
     }
   end
 
@@ -194,24 +201,26 @@ function getReactorInfo(id)
 end
 
 function getReactorContents(id)
-  local p = "ReactorContent"
-  local t = sensors.getAvailableTargetsforProbe(_ctrl, sensorName, p)
-  local d = sensors.getSensorReadingAsTable(_ctrl, sensorName, t[id], p)
-
   local contents = {
     coolant  = 0,
     fuel     = 0,
     depleted = 0
   }
 
-  for i = 1, #d do
-    local ii = d[i]
-    if string.match(ii, "tile.ice") then
-      contents.coolant = contents.coolant + 1
-    elseif string.match(ii, "UranEmpty") then
-      contents.depleted = contents.depleted + 1
-    elseif string.match(ii, "Uran") then
-      contents.fuel = contents.fuel + 1
+  local p = "ReactorContent"
+  local t = sensors.getAvailableTargetsforProbe(_ctrl, sensorName, p)
+  if type(t) == "table" and t[id] then
+    local d = sensors.getSensorReadingAsTable(_ctrl, sensorName, t[id], p)
+
+    for i = 1, #d do
+      local ii = d[i]
+      if string.match(ii, "tile.ice") then
+        contents.coolant = contents.coolant + 1
+      elseif string.match(ii, "UranEmpty") then
+        contents.depleted = contents.depleted + 1
+      elseif string.match(ii, "Uran") then
+        contents.fuel = contents.fuel + 1
+      end
     end
   end
 
@@ -301,6 +310,10 @@ function pollReactor(id, runcheck)
   -- Skip if not enabled
   if not inArray(id, reactorsEnabled) then
     return (r)
+  end
+
+  if debugOn then
+    dprint("Polling #"..id)
   end
 
   if not dryRun and runcheck then
@@ -409,7 +422,7 @@ end
 
 local sx, sy = term.getSize()
 local starty = (reactorCount + 3)
-local maxy   = (sy - starty)
+local maxy   = (sy - reactorCount)
 local pause  = false
 local inited = false
 local lxpos  = 1
@@ -428,13 +441,12 @@ while _running do
   if inited then
     sendMessage(monitorClientIds, serialize(_lastStatus))
 
-    for i = 1, reactorCount do
-      local d = _lastStatus[i].contents
-      local i = _lastStatus[i].info
-      local e = _lastStatus[i].state
-      local msg = "#"..tostring(i).." C:"..tostring(d.coolant).." F:"..tostring(d.fuel).." D:"..tostring(d.depleted).." | H:"..tostring(i.heat).. " O:"..tostring(i.output).." | ON: "..tostring(e)
-
-      cprint(msg, 1 + i)
+    for c = 1, reactorCount do
+      local d = _lastStatus[c].contents
+      local i = _lastStatus[c].info
+      local e = _lastStatus[c].state
+      local msg = string.format("#%d C:%02d F:%02d D:%02d | H:%04d O:%04d | ON:%s", c, d.coolant, d.fuel, d.depleted, i.heat, i.output, tostring(e))
+      cprint(msg, 1 + c)
     end
   else
     prints()
