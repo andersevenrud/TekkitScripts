@@ -1,6 +1,6 @@
--- Nuclear Power Plant LCD Status Controller
--- andersevenrud, larsmaehlum
--- https://github.com/andersevenrud/TekkitScripts
+-- Description: Nuclear Power Plant LCD Status Controller
+-- Authors:     andersevenrud, larsmaehlum
+-- URL:         https://github.com/andersevenrud/TekkitScripts
 
 -- Configuration
 clientId = 45
@@ -22,6 +22,11 @@ _lcdWidth, _lcdHeight = lcd.getSize()
 -- Helper Functions
 -- 
 
+function printl(msg, x, y)
+  lcd.setCursorPos(x, y)
+  lcd.write(msg)
+end
+
 function sendMessage(client, message)
   if wlanOn then
     if type(client) == "table" then
@@ -34,19 +39,8 @@ function sendMessage(client, message)
   end
 end
 
-_test = 1
 function handleMessage(message)
-  printl(message, 1, _test)
-
-  _test = _test + 1
-  if _test > 2 then
-    _test = 1
-  end
-end
-
-function printl(msg, x, y)
-  lcd.setCursorPos(x, y)
-  lcd.write(msg)
+  printl(message, 1, 1)
 end
 
 -- 

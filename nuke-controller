@@ -1,6 +1,6 @@
--- Nuclear Power Plant Controller
--- andersevenrud, larsmaehlum
--- https://github.com/andersevenrud/TekkitScripts
+-- Description: Nuclear Power Plant Controller
+-- Authors:     andersevenrud, larsmaehlum
+-- URL:         https://github.com/andersevenrud/TekkitScripts
 
 -- Configuration
 pulseTime         = 0.4
@@ -392,8 +392,7 @@ local tlypos    = lypos
 prints()
 
 while _running do
-  sendMessage(monitorClientIds, _statusMsg[1])
-  sendMessage(monitorClientIds, _statusMsg[2])
+  sendMessage(monitorClientIds, _statusMsg[1]..";".._statusMsg[2])
 
   cprint(_statusMsg[1], 2)
   cprint(_statusMsg[2], 3)
