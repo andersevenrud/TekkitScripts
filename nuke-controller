@@ -21,10 +21,10 @@ maxHeat     = 2000
 
 -- Peripherals
 wlanOn        = true
-wlanSide      = "top"
+wlanSide      = "bottom"
 bundleSide    = "back"
 buttonSide    = "front"
-alarmSide     = "right"
+alarmSide     = "top"
 sensorName    = "Sensor"
 wireTriggers  = {}
 

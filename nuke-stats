@@ -4,7 +4,7 @@
 
 -- Configuration
 clientId = 45
-serverId = 46
+serverId = 47
 sleepTimeout = 1
 
 -- Peripherals
