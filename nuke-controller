@@ -482,7 +482,7 @@ while _running do
 
   -- 2.4: Check display and prepare for next tick
   lxpos, lypos = term.getCursorPos()
-  if (lypos > sy) then
+  if (lypos > (sy - 1)) then
     lypos = starty
     prints()
   end
