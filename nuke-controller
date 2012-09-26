@@ -5,7 +5,6 @@
 -- Configuration
 pulseTime         = 0.4
 sleepTime         = 0.1
-alarmTime         = 0.5
 coolantTime       = 5
 fuelTime          = 10
 checkTicks        = 10
@@ -32,14 +31,12 @@ wireTriggers  = {}
 table.insert(wireTriggers, {
   power         = colors.red,
   coolant       = colors.lime,
-  fuel          = colors.yellow,
-  alarm         = colors.orange
+  fuel          = colors.yellow
 })
 table.insert(wireTriggers, {
   power         = colors.blue,
   coolant       = colors.white,
-  fuel          = colors.black,
-  alarm         = colors.orange
+  fuel          = colors.black
 })
 
 -- Internal variables
@@ -416,8 +413,10 @@ end
 
 function soundAlarm(timeout)
   rs.setOutput(alarmSide, true)
-  os.sleep(timeout or alarmTime)
-  rs.setOutput(alarmSide, false)
+  if timeout then
+    os.sleep(timeout)
+    stopAlarm()
+  end
 end
 
 function stopAlarm()
