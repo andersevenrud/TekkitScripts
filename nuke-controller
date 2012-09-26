@@ -87,11 +87,11 @@ function serialize(o)
   elseif type(o) == "boolean" then
     s = s..tostring(o)
   elseif type(o) == "table" then
-    s = s.."{\n"
+    local tmp = {}
     for k,v in pairs(o) do
-      s = s.."  [" .. serialize(k) .."] = " .. serialize(v) .. ",\n"
+      table.insert(tmp, "  [" .. serialize(k) .."] = " .. serialize(v))
     end
-    s = s.."}\n"
+    s = s.."{\n"..table.concat(tmp, ",\n").."}\n"
   else
     error("cannot serialize a " .. type(o))
   end

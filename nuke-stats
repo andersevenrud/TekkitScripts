@@ -11,6 +11,7 @@ sleepTimeout = 1
 wlanOn        = true
 wlanSide      = "bottom"
 wlanTimeout   = 1
+lcdScale      = 2.0
 lcdSide       = "top"
 lcd           = peripheral.wrap(lcdSide)
 
@@ -23,7 +24,8 @@ _lcdWidth, _lcdHeight = lcd.getSize()
 -- 
 
 function _deserialize(o)
-  return loadstring(o)
+  local d = loadstring(o)
+  return d()
 end
 
 function printl(msg, x, y)
@@ -57,25 +59,36 @@ function handleMessage(message)
   clearLCD()
   printl("REACTOR STATUS SCREEN", 1, 1)
 
-  local data = _deserialize(message)
+  local data = _deserialize("return "..message)
   if type(data) == "table" then
     local x = 2
+    printl("         ", x, 2)
+    printl("Enabled  ", x, 3)
+    printl("Output   ", x, 4)
+    printl("Heat     ", x, 5)
+    printl("Coolant  ", x, 6)
+    printl("Fuel     ", x, 7)
+    printl("Depleted ", x, 8)
+
+    x = 12
     for i = 1, #data do
       local contents = data[i].contents
       local info     = data[i].info
       local state    = data[i].state
 
-      printl("Core #1 - ON: "..tostring(state), x, 1)
-      printl("Output:   "..info.output, x, 2)
-      printl("Heat:     "..info.heat, x, 3)
-      printl("Coolant:  "..contents.coolant, x, 4)
-      printl("Fuel:     "..contents.fuel, x, 5)
-      printl("Depleted: "..contents.depleted, x, 6)
+      printl(string.format("#%d", i), x, 2)
+      printl(tostring(state),         x, 3)
+      printl(info.output,             x, 4)
+      printl(info.heat,               x, 5)
+      printl(contents.coolant,        x, 6)
+      printl(contents.fuel,           x, 7)
+      printl(contents.depleted,       x, 8)
 
-      x = x + 16
+      x = x + 12
     end
   else
     printl("--- ERROR IN DATA TRANSMISSION --", 1, 3)
+    print(data)
   end
 end
 
@@ -84,7 +97,7 @@ end
 -- 
 
 clearConsole()
-lcd.setTextScale(1.0)
+lcd.setTextScale(lcdScale)
 clearLCD()
 
 -- Startup
@@ -95,13 +108,13 @@ end
 while _running do
   senderId, message, distance = rednet.receive(wlanTimeout)
   if senderId then
-    print("#", senderId, " ", distance, "m ", #message, "b")
+    --print("#", senderId, " ", distance, "m ", #message, "b")
     if senderId == serverId then
       handleMessage(message)
     end
   end
 
-  os.sleep(sleepTimeout)
+  --os.sleep(sleepTimeout)
 end
 
 if wlanOn then
