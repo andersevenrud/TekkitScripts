@@ -1,5 +1,6 @@
 -- Nuclear Power Plant LCD Status Controller
 -- andersevenrud, larsmaehlum
+-- https://github.com/andersevenrud/TekkitScripts
 
 -- Configuration
 clientId = 45

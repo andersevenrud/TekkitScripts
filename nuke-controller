@@ -1,5 +1,6 @@
 -- Nuclear Power Plant Controller
 -- andersevenrud, larsmaehlum
+-- https://github.com/andersevenrud/TekkitScripts
 
 -- Configuration
 pulseTime         = 0.4
