@@ -10,7 +10,7 @@ Press the input button to activate the power. Press it again to shut down.
 
 This application communicates with `nuke-stats` using serialized data and `Rednet`
 
-Schematics: nuke-schema.png  
+Schematics: `nuke-schema.png`
 
 Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
 
@@ -29,7 +29,7 @@ Usage: `nuke-stats`
 Download a file from pastebin.com and save it on the console or disk.
 
 
-Usage: `dl-script <pastebin-id> <absolute-destination-path>`
+Usage: `dl-script <url> <absolute-destination-path>`, launch without arguments to see more
 
 # Links
 

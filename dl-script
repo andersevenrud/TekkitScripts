@@ -1,0 +1,39 @@
+-- Description: Download script
+-- Authors:     andersevenrud, larsmaehlum
+-- URL:         https://github.com/andersevenrud/TekkitScripts
+
+local _argv = {...}
+if #_argv > 1 then
+  local url  = _argv[1]
+  local file = _argv[2]
+
+  if string.match(url, "pastebin://") then
+    local i1, i2 = string.find(url, "pastebin://", nil, true)
+    url = string.format("http://pastebin.com/raw.php?i=%s", string.sub(url. "", i2 + 1))
+  end
+
+  local h = http.get(url)
+  if h then
+    print("Downloading ", url)
+    local f = fs.open(file, "w")
+    if f then
+      print("Writing ", file)
+      local s = h.readAll() or "-- DOWNLOAD FAILURE"
+      f.write(s)
+      f.close()
+
+      print("DONE! :-)")
+    end
+
+    h.close()
+
+    return (true)
+  end
+else
+  print("Usage:")
+  print("dl-script pastebin://<pastebin-id> <absolute-path>")
+  print("dl-script <url> <absolute-path> (https not supported)")
+end
+
+return (false)
+
