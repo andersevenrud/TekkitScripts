@@ -10,7 +10,7 @@ sleepTimeout = 1
 -- Peripherals
 wlanOn        = true
 wlanSide      = "left"
-wlanTimeout   = 1
+wlanTimeout   = sleepTimeout
 lcdSide       = "top"
 lcd           = peripheral.wrap(lcdSide)
 
@@ -40,7 +40,10 @@ function sendMessage(client, message)
 end
 
 function handleMessage(message)
-  printl(message, 1, 1)
+  local lines = split(message, ";")
+  for i = 1, #lines do
+    printl(message, 1, i)
+  end
 end
 
 -- 
@@ -68,7 +71,7 @@ while _running do
     end
   end
 
-  os.sleep(sleepTimeout)
+  --os.sleep(sleepTimeout)
 end
 
 if wlanOn then

@@ -388,11 +388,14 @@ local pause     = false
 local lxpos     = 1
 local lypos     = monitorStartY
 local tlypos    = lypos
+local message   = ""
 
 prints()
 
 while _running do
-  sendMessage(monitorClientIds, _statusMsg[1]..";".._statusMsg[2])
+
+  -- Send status report
+  sendMessage(monitorClientIds, join(_statusMsg, ";"))
 
   cprint(_statusMsg[1], 2)
   cprint(_statusMsg[2], 3)
