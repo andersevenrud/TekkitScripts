@@ -23,11 +23,6 @@ _lcdWidth, _lcdHeight = lcd.getSize()
 -- Helper Functions
 -- 
 
-function _deserialize(o)
-  local d = loadstring(o)
-  return d()
-end
-
 function printl(msg, x, y)
   lcd.setCursorPos(x, y)
   lcd.write(msg)
@@ -59,7 +54,7 @@ function handleMessage(message)
   clearLCD()
   printl("REACTOR STATUS SCREEN", 1, 1)
 
-  local data = _deserialize("return "..message)
+  local data = textutils.unserialize(message)
   if type(data) == "table" then
     local x = 2
     printl("         ", x, 2)

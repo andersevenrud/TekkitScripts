@@ -6,28 +6,29 @@
 pulseTime         = 0.4
 sleepTime         = 0.1
 coolantTime       = 5
+startAlarmTime    = 1.0
 fuelTime          = 10
 checkTicks        = 10
+buttonTicks       = 11
 rebootTries       = 3
 reactorsEnabled   = {1, 2}
 reactorCount      = 2
 monitorClientIds  = {45}
 
 -- Thresholds
-maxCoolant  = 10
-maxFuel     = 44
-maxSlots    = 54
-maxHeat     = 2000
+maxCoolant        = 10
+maxFuel           = 44
+maxSlots          = 54
+maxHeat           = 2000
 
 -- Peripherals
-wlanOn        = true
-wlanSide      = "bottom"
-bundleSide    = "back"
-buttonSide    = "front"
-alarmSide     = "top"
-sensorName    = "Sensor"
-wireTriggers  = {}
-
+wlanOn            = true
+wlanSide          = "bottom"
+bundleSide        = "back"
+buttonSide        = "front"
+alarmSide         = "top"
+sensorName        = "Sensor"
+wireTriggers      = {}
 table.insert(wireTriggers, {
   power         = colors.red,
   coolant       = colors.lime,
@@ -40,20 +41,26 @@ table.insert(wireTriggers, {
 })
 
 -- Internal variables
-debugOn      = false                      -- Debug mode, cmd argument
-dryRun       = false                      -- Don't send any signals, cmd argument
-_argv        = { ... }                    -- Cmd arguments
-_ctrl        = sensors.getController()    -- Sensor controller
-_tick        = 0                          -- For checking contents
-_tick2       = 0                          -- For button delay
-_inQueue     = {}                         -- Entities in queue
-_lastStatus  = {}
-_running     = true                       -- Loop running ?
-_started     = false                      -- Button clicked once ?
+debugOn         = false                      -- Debug mode, cmd argument
+dryRun          = false                      -- Don't send any signals, cmd argument
+_argv           = { ... }                    -- Cmd arguments
+_ctrl           = sensors.getController()    -- Sensor controller
+_tick           = 0                          -- For checking contents
+_tick2          = 0                          -- For button delay
+_reactorStatus  = {}                         -- Reactor statuses, see below
+_running        = true                       -- Loop running ?
+_started        = false                      -- Button clicked once ?
 
 for i = 1, reactorCount do
-  table.insert(_lastStatus, {info = {}, contents = {}, state = false, overHeated = false, rebootTries = 0})
-  table.insert(_inQueue, {coolantTime = 0, fuelTime = 0})
+  table.insert(_reactorStatus, {
+    info          = {},
+    contents      = {},
+    state         = false,
+    overHeated    = false,
+    rebootTries   = 0,
+    coolantTime   = 0,
+    fuelTime      = 0
+  })
 end
 
 -- 
@@ -69,28 +76,6 @@ function inArray(k, o)
     end
   end
   return (found)
-end
-
-function serialize(o)
-  local s = ""
-
-  if type(o) == "number" then
-    s = s..o
-  elseif type(o) == "string" then
-    s = s..string.format("%q", o)
-  elseif type(o) == "boolean" then
-    s = s..tostring(o)
-  elseif type(o) == "table" then
-    local tmp = {}
-    for k,v in pairs(o) do
-      table.insert(tmp, "  [" .. serialize(k) .."] = " .. serialize(v))
-    end
-    s = s.."{\n"..table.concat(tmp, ",\n").."}\n"
-  else
-    error("cannot serialize a " .. type(o))
-  end
-
-  return (s)
 end
 
 function dprint(msg)
@@ -293,9 +278,9 @@ function pollReactor(id, runcheck)
   local c = nil
   local r = true
 
-  _lastStatus[id].info      = i
-  _lastStatus[id].contents  = d
-  _lastStatus[id].state     = e
+  _reactorStatus[id].info      = i
+  _reactorStatus[id].contents  = d
+  _reactorStatus[id].state     = e
 
   -- Skip if not enabled
   if not inArray(id, reactorsEnabled) then
@@ -332,24 +317,24 @@ function pollReactor(id, runcheck)
         soundAlarm()
         stopReactor(id, true)
         r = false
-        _lastStatus[id].overHeated = true
+        _reactorStatus[id].overHeated = true
       else
         stopAlarm()
-        _lastStatus[id].overHeated = false
+        _reactorStatus[id].overHeated = false
       end
 
-      _lastStatus[id].rebootTries = 0
+      _reactorStatus[id].rebootTries = 0
     else
       -- Check environment
-      if _lastStatus[id].overHeated == true and (_lastStatus[id].rebootTries <= rebootTries) then
+      if _reactorStatus[id].overHeated == true and (_reactorStatus[id].rebootTries <= rebootTries) then
         startReactor(id)
         r = false
 
         if checkReactorState(id) then
-          _lastStatus[id].overHeated = false
+          _reactorStatus[id].overHeated = false
           stopAlarm()
         else
-          _lastStatus[id].rebootTries = _lastStatus[id].rebootTries + 1
+          _reactorStatus[id].rebootTries = _reactorStatus[id].rebootTries + 1
         end
       end
 
@@ -382,12 +367,12 @@ end
 function pushCoolant(id, count)
   if not count then count = 1 end
 
-  if  not (_inQueue[id].coolantTime > os.clock()) then
+  if  not (_reactorStatus[id].coolantTime > os.clock()) then
     for i = 1, count do
       dprint(string.format("PUSHING COOLANT %d/%d TO REACTOR #%d", i, count, id))
       sendPulse(wireTriggers[id].coolant)
     end
-    _inQueue[id].coolantTime = os.clock() + coolantTime
+    _reactorStatus[id].coolantTime = os.clock() + coolantTime
 
     return (true)
   end
@@ -398,12 +383,12 @@ end
 function pushFuel(id, count)
   if not count then count = 1 end
 
-  if  not (_inQueue[id].fuelTime > os.clock()) then
+  if  not (_reactorStatus[id].fuelTime > os.clock()) then
     for i = 1, count do
       dprint(string.format("PUSHING FUEL %d/%d TO REACTOR #%d", i, count, id))
       sendPulse(wireTriggers[id].fuel)
     end
-    _inQueue[id].fuelTime = os.clock() + fuelTime
+    _reactorStatus[id].fuelTime = os.clock() + fuelTime
 
     return (true)
   end
@@ -446,12 +431,12 @@ while _running do
 
   -- 2.1: Handle last status
   if inited then
-    sendMessage(monitorClientIds, serialize(_lastStatus))
+    sendMessage(monitorClientIds, textutils.serialize(_reactorStatus))
 
     for c = 1, reactorCount do
-      local d = _lastStatus[c].contents
-      local i = _lastStatus[c].info
-      local e = _lastStatus[c].state
+      local d = _reactorStatus[c].contents
+      local i = _reactorStatus[c].info
+      local e = _reactorStatus[c].state
       local msg = string.format("#%d C:%02d F:%02d D:%02d | H:%04d O:%04d | ON:%s", c, d.coolant, d.fuel, d.depleted, i.heat, i.output, tostring(e))
       cprint(msg, 1 + c)
     end
@@ -463,8 +448,8 @@ while _running do
   term.setCursorPos(lxpos, lypos)
 
   -- 2.2: Perform system operations
-  for i = 1, reactorCount do
-    pause = pollReactor(i, _started) or pause
+  for i = 1, #reactorsEnabled do
+    pause = pollReactor(reactorsEnabled[i], _started) or pause
   end
   if pause then
     os.sleep(sleepTime)
@@ -475,14 +460,14 @@ while _running do
     _tick2 = _tick2 - 1
   else
     if rs.getInput(buttonSide) then
-      _tick2 = 11
+      _tick2 = buttonTicks
 
       if _started then
         _running = false
         dprint(">>> SAFE SHUTDOWN :-) <<<")
         break
       else
-        soundAlarm(1.0)
+        soundAlarm(startAlarmTime)
         _started = true
         startReactors()
       end
