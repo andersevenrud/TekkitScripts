@@ -78,11 +78,11 @@ function handleMessage(message)
 
       printl(string.format("#%d", i), x, 2)
       printl(tostring(state),         x, 3)
-      printl(info.output,             x, 4)
-      printl(info.heat,               x, 5)
-      printl(contents.coolant,        x, 6)
-      printl(contents.fuel,           x, 7)
-      printl(contents.depleted,       x, 8)
+      printl(string.format("%d", info.output),             x, 4)
+      printl(string.format("%d", info.heat),               x, 5)
+      printl(string.format("%d", contents.coolant),        x, 6)
+      printl(string.format("%d", contents.fuel),           x, 7)
+      printl(string.format("%d", contents.depleted),       x, 8)
 
       x = x + 12
     end
