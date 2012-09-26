@@ -4,13 +4,13 @@
 
 -- Configuration
 clientId = 45
-serverId = 44
+serverId = 46
 sleepTimeout = 1
 
 -- Peripherals
 wlanOn        = true
 wlanSide      = "bottom"
-wlanTimeout   = sleepTimeout
+wlanTimeout   = 1
 lcdSide       = "top"
 lcd           = peripheral.wrap(lcdSide)
 
@@ -22,7 +22,7 @@ _lcdWidth, _lcdHeight = lcd.getSize()
 -- Helper Functions
 -- 
 
-function deserialize(o)
+function _deserialize(o)
   return loadstring(o)
 end
 
@@ -55,22 +55,27 @@ end
 
 function handleMessage(message)
   clearLCD()
+  printl("REACTOR STATUS SCREEN", 1, 1)
 
-  local data = deserialize(message)
-  local x    = 1
-  for i = 1, #data do
-    local contents = data[i].contents
-    local info     = data[i].info
-    local state    = data[i].state
+  local data = _deserialize(message)
+  if type(data) == "table" then
+    local x = 2
+    for i = 1, #data do
+      local contents = data[i].contents
+      local info     = data[i].info
+      local state    = data[i].state
 
-    printl("Core #1 - ON: "..tostring(state), x, 1)
-    printl("Output:   "..info.output, x, 2)
-    printl("Heat:     "..info.heat, x, 3)
-    printl("Coolant:  "..contents.coolant, x, 4)
-    printl("Fuel:     "..contents.fuel, x, 5)
-    printl("Depleted: "..contents.depleted, x, 6)
+      printl("Core #1 - ON: "..tostring(state), x, 1)
+      printl("Output:   "..info.output, x, 2)
+      printl("Heat:     "..info.heat, x, 3)
+      printl("Coolant:  "..contents.coolant, x, 4)
+      printl("Fuel:     "..contents.fuel, x, 5)
+      printl("Depleted: "..contents.depleted, x, 6)
 
-    x = x + 16
+      x = x + 16
+    end
+  else
+    printl("--- ERROR IN DATA TRANSMISSION --", 1, 3)
   end
 end
 
@@ -90,13 +95,13 @@ end
 while _running do
   senderId, message, distance = rednet.receive(wlanTimeout)
   if senderId then
-    print("#", senderId, " ", distance, "m ", message)
+    print("#", senderId, " ", distance, "m ", #message, "b")
     if senderId == serverId then
       handleMessage(message)
     end
   end
 
-  --os.sleep(sleepTimeout)
+  os.sleep(sleepTimeout)
 end
 
 if wlanOn then
