@@ -56,10 +56,7 @@ _alarm       = false
 for i = 1, reactorCount do
   table.insert(_overHeated, false)
   table.insert(_lastStatus, {info = {}, contents = {}, state = false})
-  table.insert(_inQueue, {
-    coolantTime = 0,
-    fuelTime    = 0
-  })
+  table.insert(_inQueue, {coolantTime = 0, fuelTime = 0})
 end
 
 -- 
