@@ -8,8 +8,6 @@ A Nuclear Power Plant controller for automatic fueling and cooling
 Connect according to schematics, configure the variables, then launch application.
 Press the input button to activate the power. Press it again to shut down.
 
-This application communicates with `nuke-stats` using serialized data and `Rednet`
-
 Schematics: `nuke-schema.png`
 
 Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
@@ -18,8 +16,6 @@ Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
 
 ## nuke-stats
 Display stats from `nuke-controller`
-
-This application communicates with `nuke-controller` using serialized data and `Rednet`
 
 Usage: `nuke-stats`
 
