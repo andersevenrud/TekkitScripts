@@ -2,32 +2,34 @@
 -- Authors:     andersevenrud, larsmaehlum
 -- URL:         https://github.com/andersevenrud/TekkitScripts
 
+-- 
 -- Configuration
+-- 
+reactorCount      = 2
+reactorsEnabled   = {1, 2}
+
 pulseTime         = 0.4
 sleepTime         = 0.1
 coolantTime       = 5
-startAlarmTime    = 1.0
+bootAlarmTime     = 1.0
 fuelTime          = 10
 checkTicks        = 10
 buttonTicks       = 11
 rebootTries       = 3
-reactorsEnabled   = {1, 2}
-reactorCount      = 2
-monitorClientIds  = {45}
 
--- Thresholds
 maxCoolant        = 10
 maxFuel           = 44
 maxSlots          = 54
 maxHeat           = 2000
 
--- Peripherals
 wlanOn            = true
 wlanSide          = "bottom"
+wlanClients       = {45}
 bundleSide        = "back"
 buttonSide        = "front"
 alarmSide         = "top"
 sensorName        = "Sensor"
+
 wireTriggers      = {}
 table.insert(wireTriggers, {
   power         = colors.red,
@@ -40,16 +42,13 @@ table.insert(wireTriggers, {
   fuel          = colors.black
 })
 
+-- 
 -- Internal variables
-debugOn         = false                      -- Debug mode, cmd argument
-dryRun          = false                      -- Don't send any signals, cmd argument
-_argv           = { ... }                    -- Cmd arguments
+-- 
+_debugOn        = false                      -- Debug mode, cmd argument
+_dryRun         = false                      -- Don't send any signals, cmd argument
 _ctrl           = sensors.getController()    -- Sensor controller
-_tick           = 0                          -- For checking contents
-_tick2          = 0                          -- For button delay
 _reactorStatus  = {}                         -- Reactor statuses, see below
-_running        = true                       -- Loop running ?
-_started        = false                      -- Button clicked once ?
 
 for i = 1, reactorCount do
   table.insert(_reactorStatus, {
@@ -88,14 +87,8 @@ function cprint(msg, y)
   print(msg)
 end
 
-function prints()
-  term.clear()
-  term.setCursorPos(1, 1)
-  local msg = string.format("!  C:%02d F:%02d S:%02d | H:%04d O:---- | DRY:%s", maxCoolant, maxFuel, maxSlots, maxHeat, tostring(dryRun))
-  print(msg)
-end
-
 function parseCmd()
+  local _argv = { ... }
   local _l = nil
   for i = 1, #_argv do
     local _v = _argv[i]
@@ -105,15 +98,15 @@ function parseCmd()
     else
       if _l == "-dryRun" then
         if _v == "true" then
-          dryRun = true
+          _dryRun = true
         else
-          dryRun = false
+          _dryRun = false
         end
       elseif _l == "-debugOn" then
         if _v == "true" then
-          debugOn = true
+          _debugOn = true
         else
-          debugOn = false
+          _debugOn = false
         end
       end
     end
@@ -271,7 +264,7 @@ function _pollReactorFuel(d, i, id)
   return (count)
 end
 
-function pollReactor(id, runcheck)
+function pollReactor(id, runcheck, tick)
   local i = getReactorInfo(id)
   local d = getReactorContents(id)
   local e = checkReactorState(id, i)
@@ -287,16 +280,16 @@ function pollReactor(id, runcheck)
     return (r)
   end
 
-  if debugOn then
+  if _debugOn then
     dprint("Polling #"..id)
   end
 
-  if not dryRun and runcheck then
+  if not _dryRun and runcheck then
     local total = (d.coolant + d.fuel + d.depleted)
     local full = total >= maxSlots
     if e then
       -- Check contents
-      if _tick >= checkTicks then
+      if tick >= checkTicks then
         if not full then
           c = _pollReactorCoolant(d, i, id)
           if c > 0 then
@@ -356,7 +349,7 @@ function sendPulse(color, stimeout, etimeout)
   if not stimeout then stimeout = pulseTime end
   if not etimeout then etimeout = pulseTime end
 
-  if not dryRun then
+  if not _dryRun then
     redstone.setBundledOutput(bundleSide, 0)
     os.sleep(stimeout)
     redstone.setBundledOutput(bundleSide, color)
@@ -412,12 +405,17 @@ end
 -- Main program
 -- 
 
-local sx, sy = term.getSize()
-local starty = (reactorCount + 3)
-local pause  = false
-local inited = false
-local lxpos  = 1
-local lypos  = starty
+local sx, sy  = term.getSize()
+local starty  = (reactorCount + 3)
+local running = true
+local pause   = false
+local inited  = false
+local refresh = true
+local lxpos   = 1
+local lypos   = starty
+local ctick   = 0
+local btick   = 0
+local bstate  = 0
 
 -- 1: Bootup
 startNetwork()
@@ -427,11 +425,18 @@ stopReactors()
 stopAlarm()
 
 -- 2: Main loop
-while _running do
+while running do
+  -- 2.1.1: Display header
+  if refresh then
+    term.clear()
+    term.setCursorPos(1, 1)
+    print(string.format("!  C:%02d F:%02d S:%02d | H:%04d O:---- | DRY:%s", maxCoolant, maxFuel, maxSlots, maxHeat, tostring(_dryRun)))
+    refresh = false
+  end
 
-  -- 2.1: Handle last status
+  -- 2.1.2: Handle last status and display statuses
   if inited then
-    sendMessage(monitorClientIds, textutils.serialize(_reactorStatus))
+    sendMessage(wlanClients, textutils.serialize(_reactorStatus))
 
     for c = 1, reactorCount do
       local d = _reactorStatus[c].contents
@@ -440,53 +445,53 @@ while _running do
       local msg = string.format("#%d C:%02d F:%02d D:%02d | H:%04d O:%04d | ON:%s", c, d.coolant, d.fuel, d.depleted, i.heat, i.output, tostring(e))
       cprint(msg, 1 + c)
     end
-  else
-    prints()
   end
 
   cprint("-------------------------------------------------", (reactorCount + 2))
   term.setCursorPos(lxpos, lypos)
 
-  -- 2.2: Perform system operations
+  -- 2.2: Perform system operations (won't do anything unless on-line)
   for i = 1, #reactorsEnabled do
-    pause = pollReactor(reactorsEnabled[i], _started) or pause
+    pause = pollReactor(reactorsEnabled[i], (bstate > 0), ctick) or pause
   end
+
   if pause then
     os.sleep(sleepTime)
   end
 
   -- 2.3: Check input button(s)
-  if _tick2 > 0 then
-    _tick2 = _tick2 - 1
+  if btick > 0 then
+    btick = btick - 1
   else
     if rs.getInput(buttonSide) then
-      _tick2 = buttonTicks
+      btick = buttonTicks
 
-      if _started then
-        _running = false
+      if bstate == 1 then
+        running = false
         dprint(">>> SAFE SHUTDOWN :-) <<<")
         break
-      else
-        soundAlarm(startAlarmTime)
-        _started = true
+      elseif bstate == 0 then
+        soundAlarm(bootAlarmTime)
         startReactors()
       end
+
+      bstate = bstate + 1
     end
   end
 
-  -- 2.4: Check display and prepare for next tick
+  -- 2.4: Check display overflow and prepare for next tick
   lxpos, lypos = term.getCursorPos()
-  if (lypos > (sy - 1)) then
-    lypos = starty
-    prints()
+  if (lypos >= sy) then
+    lypos   = starty
+    refresh = true
   end
 
-  _tick = _tick + 1
-  if _tick > checkTicks then
-    _tick = 0
+  ctick = ctick + 1
+  if ctick > checkTicks then
+    ctick = 0
   end
 
-  pause = false
+  pause  = false
   inited = true
 end
 
