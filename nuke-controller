@@ -49,6 +49,7 @@ _debugOn        = false                      -- Debug mode, cmd argument
 _dryRun         = false                      -- Don't send any signals, cmd argument
 _ctrl           = sensors.getController()    -- Sensor controller
 _reactorStatus  = {}                         -- Reactor statuses, see below
+_argv           = { ... }
 
 for i = 1, reactorCount do
   table.insert(_reactorStatus, {
@@ -88,7 +89,6 @@ function cprint(msg, y)
 end
 
 function parseCmd()
-  local _argv = { ... }
   local _l = nil
   for i = 1, #_argv do
     local _v = _argv[i]
@@ -451,8 +451,8 @@ while running do
   term.setCursorPos(lxpos, lypos)
 
   -- 2.2: Perform system operations (won't do anything unless on-line)
-  for i = 1, #reactorsEnabled do
-    pause = pollReactor(reactorsEnabled[i], (bstate > 0), ctick) or pause
+  for i = 1, reactorCount do
+    pause = pollReactor(i, (bstate > 0), ctick) or pause
   end
 
   if pause then
