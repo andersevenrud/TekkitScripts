@@ -16,6 +16,7 @@ fuelTime          = 10
 checkTicks        = 10
 buttonTicks       = 11
 rebootTries       = 3
+rebootWaitTime    = 1.0
 
 maxCoolant        = 10
 maxFuel           = 44
@@ -47,6 +48,7 @@ table.insert(wireTriggers, {
 -- 
 _debugOn        = false                      -- Debug mode, cmd argument
 _dryRun         = false                      -- Don't send any signals, cmd argument
+_lockStation    = false                      -- Lock control-keys, cmd argument
 _ctrl           = sensors.getController()    -- Sensor controller
 _reactorStatus  = {}                         -- Reactor statuses, see below
 _argv           = { ... }
@@ -79,7 +81,7 @@ function inArray(k, o)
 end
 
 function dprint(msg)
-  print(string.format("%d %s", os.time() * 1000, msg))
+  print(string.format("%-6s %s", textutils.formatTime(os.time(), true), msg))
 end
 
 function cprint(msg, y)
@@ -101,6 +103,12 @@ function parseCmd()
           _dryRun = true
         else
           _dryRun = false
+        end
+      elseif _l == "-lockStation" then
+        if _v == "true" then
+          _lockStation = true
+        else
+          _lockStation = false
         end
       elseif _l == "-debugOn" then
         if _v == "true" then
@@ -229,6 +237,9 @@ function stopReactor(id, heat)
     end
 
     sendPulse(wireTriggers[id].power)
+    if heat then
+      os.sleep(rebootWaitTime)
+    end
   end
 end
 
@@ -362,7 +373,7 @@ function pushCoolant(id, count)
 
   if  not (_reactorStatus[id].coolantTime > os.clock()) then
     for i = 1, count do
-      dprint(string.format("PUSHING COOLANT %d/%d TO REACTOR #%d", i, count, id))
+      dprint(string.format("PUSH COOLANT %d/%d REACTOR #%d", i, count, id))
       sendPulse(wireTriggers[id].coolant)
     end
     _reactorStatus[id].coolantTime = os.clock() + coolantTime
@@ -378,7 +389,7 @@ function pushFuel(id, count)
 
   if  not (_reactorStatus[id].fuelTime > os.clock()) then
     for i = 1, count do
-      dprint(string.format("PUSHING FUEL %d/%d TO REACTOR #%d", i, count, id))
+      dprint(string.format("PUSH FUEL %d/%d REACTOR #%d", i, count, id))
       sendPulse(wireTriggers[id].fuel)
     end
     _reactorStatus[id].fuelTime = os.clock() + fuelTime
@@ -423,6 +434,10 @@ clearScreen()
 parseCmd()
 stopReactors()
 stopAlarm()
+
+if _lockStation then
+  os.pullEventRaw = os.pullEvent
+end
 
 -- 2: Main loop
 while running do
