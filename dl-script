@@ -9,7 +9,7 @@ if #_argv > 1 then
 
   if string.match(url, "pastebin://") then
     local i1, i2 = string.find(url, "pastebin://", nil, true)
-    url = string.format("http://pastebin.com/raw.php?i=%s", string.sub(url. "", i2 + 1))
+    url = string.format("http://pastebin.com/raw.php?i=%s", string.sub(url, "", i2 + 1))
   end
 
   local h = http.get(url)
