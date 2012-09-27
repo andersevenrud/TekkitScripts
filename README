@@ -14,6 +14,8 @@ Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
 
 ![Power Plant Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-27_02.17.04.png)
 
+![Power Plant Console Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-26_22.22.08.png)
+
 ## nuke-stats
 Display stats from `nuke-controller`
 
