@@ -1,16 +1,37 @@
-A collection of LUA scripts and APIs used in Tekkit for Minecraft
+A collection of Lua scripts/APIs and schematics for creating advanced machines in Tekkit (Minecraft)
+
+This was all created using Tekkit 3.1.2
 
 # Scripts
 
 ## nuke-controller
-A Nuclear Power Plant controller for automatic fueling and cooling
+Fully automatic Nuclear Power Plant control system.
 
-Connect according to schematics, configure the variables, then launch application.
-Press the input button to activate the power. Press it again to shut down.
+Handles monitoring, fueling and cooling of one or more nuclear reactors. This only works when using the schematics attached.
 
-Schematics: `nuke-schema.png`
+### Schematics
 
-Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
+See `nuke-schema.png`
+
+**NOTE:** This is only compatible with IC2 version 1.103, but a reconfiguration would make it compatible with latest revisions.
+
+### Console Usage
+
+Run `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
+
+Copy `nuke-controller.startup` to `/disk/startup` to automatically start (and update to latest version) on boot/server-restart (assuming HTTP is enabled)
+
+### Instructions
+
+* Build according to schematics and correctly configure parameters and peripherals
+* Start the Application (described above)
+* Click the connected button (ONCE) to start up reactors and initialize systems
+- The core should now be running
+* Click the connected button (ONCE -- again) to perform the shutdown procedure
+
+The alarm will sound when first powering up the reactor and when the thermostat is triggered.
+
+### Screenshots
 
 ![Power Plant Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-27_02.17.04.png)
 
@@ -19,15 +40,22 @@ Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
 ## nuke-stats
 Display stats from `nuke-controller`
 
-Usage: `nuke-stats`
+### Console Usage
+
+Run `nuke-stats` (Remember to check configuration parameters in the top section of script)
+
+Copy `nuke-stats.startup` to `/disk/startup` to automatically start (and update to latest version) on boot/server-restart (assuming HTTP is enabled)
+
+### Screenshots
 
 ![Power Plant Status Display Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-stats-screens/2012-09-26_22.26.13.png)
 
 ## dl-script
 Download a file from pastebin.com and save it on the console or disk.
 
+### Console Usage
 
-Usage: `dl-script <url> <absolute-destination-path>`, launch without arguments to see more
+Run `dl-script <url> <absolute-destination-path>`, launch without arguments to see more
 
 # Links
 
