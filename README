@@ -14,7 +14,7 @@ Schematics: `nuke-schema.png`
 
 Usage: `nuke-controller [(-debugOn true|false), (-dryRun true|false)]`
 
-![Power Plant Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-26_22.18.18.png)
+![Power Plant Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-27_02.17.04.png)
 
 ## nuke-stats
 Display stats from `nuke-controller`
