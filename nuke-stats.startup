@@ -1,0 +1,11 @@
+-- Description: Nuclear Power Plant LCD Status Controller -- Startup script
+-- Authors:     andersevenrud, larsmaehlum
+-- URL:         https://github.com/andersevenrud/TekkitScripts
+
+local name = "nuke-stats"
+local dl   = "/disk/dl-script"
+local url  = "http://tekkit.0o.no/?n="..name
+local dest = "/"..name
+
+shell.run(string.format("%s %s %s", dl, url, dest))
+shell.run(dest)
