@@ -9,6 +9,8 @@ Fully automatic Nuclear Power Plant control system.
 
 Handles monitoring, fueling and cooling of one or more nuclear reactors. This only works when using the schematics attached.
 
+YouTube video: http://www.youtube.com/watch?v=MTzRL2bmeRo
+
 ### Schematics
 
 See `nuke-schema.png`
