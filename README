@@ -63,6 +63,10 @@ Download a file from pastebin.com and save it on the console or disk.
 
 Run `dl-script <url> <absolute-destination-path>`, launch without arguments to see more
 
+# Licence
+
+See the [LICENCE file](LICENCE "LICENCE Document")
+
 # Links
 
 * Code and Schematics: https://github.com/andersevenrud/TekkitScripts
