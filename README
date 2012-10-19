@@ -65,4 +65,5 @@ Run `dl-script <url> <absolute-destination-path>`, launch without arguments to s
 
 # Links
 
-https://github.com/andersevenrud/TekkitScripts
+* Code and Schematics: https://github.com/andersevenrud/TekkitScripts
+* Blog post on `nuke-controller` and `nuke-stats`: http://anderse.wordpress.com/2012/09/29/fully-automatic-nuclear-power-plant-in-tekkit-minecraft/
