@@ -9,10 +9,6 @@ Fully automatic Nuclear Power Plant control system.
 
 Handles monitoring, fueling and cooling of one or more nuclear reactors. This only works when using the schematics attached.
 
-![Video Preview](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/animation.gif)
-
-Full video can be viewed on my [YouTube Channel](http://www.youtube.com/watch?v=MTzRL2bmeRo "Direct link to video")
-
 ### Schematics
 
 See `nuke-schema.png`
@@ -40,6 +36,12 @@ The alarm will sound when first powering up the reactor and when the thermostat 
 ![Power Plant Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-27_02.17.04.png)
 
 ![Power Plant Console Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-26_22.22.08.png)
+
+### Videos and Demonstrations
+
+![Video Preview](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/animation.gif)
+
+Full video can be viewed on my [YouTube Channel](http://www.youtube.com/watch?v=MTzRL2bmeRo "Direct link to video")
 
 ## nuke-stats
 Display stats from `nuke-controller`
