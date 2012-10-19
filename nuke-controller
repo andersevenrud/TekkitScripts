@@ -15,6 +15,8 @@ bootAlarmTime     = 1.0
 fuelTime          = 10
 checkTicks        = 10
 buttonTicks       = 11
+rebootTries       = 3
+rebootWaitTime    = 1.0
 
 maxCoolant        = 10
 maxFuel           = 44
@@ -29,7 +31,6 @@ buttonSide        = "front"
 alarmSide         = "top"
 sensorName        = "Sensor"
 
-wireKeppAlive     = colors.orange
 wireTriggers      = {}
 table.insert(wireTriggers, {
   power         = colors.red,
@@ -57,6 +58,8 @@ for i = 1, reactorCount do
     info          = {},
     contents      = {},
     state         = false,
+    overHeated    = false,
+    rebootTries   = 0,
     coolantTime   = 0,
     fuelTime      = 0
   })
@@ -234,6 +237,9 @@ function stopReactor(id, heat)
     end
 
     sendPulse(wireTriggers[id].power)
+    if heat then
+      os.sleep(rebootWaitTime)
+    end
   end
 end
 
@@ -276,9 +282,9 @@ function pollReactor(id, runcheck, tick)
   local c = nil
   local r = true
 
-  _reactorStatus[id].info     = i
-  _reactorStatus[id].contents = d
-  _reactorStatus[id].state    = e
+  _reactorStatus[id].info      = i
+  _reactorStatus[id].contents  = d
+  _reactorStatus[id].state     = e
 
   -- Skip if not enabled
   if not inArray(id, reactorsEnabled) then
@@ -291,8 +297,7 @@ function pollReactor(id, runcheck, tick)
 
   if not _dryRun and runcheck then
     local total = (d.coolant + d.fuel + d.depleted)
-    local full  = total >= maxSlots
-
+    local full = total >= maxSlots
     if e then
       -- Check contents
       if tick >= checkTicks then
@@ -314,11 +319,29 @@ function pollReactor(id, runcheck, tick)
       -- Check environment
       if i.heat > maxHeat then
         soundAlarm()
-        stopReactor(id, true) -- External systems will trigger reboot
+        stopReactor(id, true)
         r = false
+        _reactorStatus[id].overHeated = true
       else
         stopAlarm()
+        _reactorStatus[id].overHeated = false
       end
+
+      _reactorStatus[id].rebootTries = 0
+    else
+      -- Check environment
+      if _reactorStatus[id].overHeated == true and (_reactorStatus[id].rebootTries <= rebootTries) then
+        startReactor(id)
+        r = false
+
+        if checkReactorState(id) then
+          _reactorStatus[id].overHeated = false
+          stopAlarm()
+        else
+          _reactorStatus[id].rebootTries = _reactorStatus[id].rebootTries + 1
+        end
+      end
+
     end
   end
 
@@ -329,8 +352,8 @@ end
 -- External Systems functions
 -- 
 
-function sendAlive()
-  sendPulse(wireKeepAlive)
+function checkWire(color)
+  return 
 end
 
 function sendPulse(color, stimeout, etimeout)
@@ -443,7 +466,6 @@ while running do
   term.setCursorPos(lxpos, lypos)
 
   -- 2.2: Perform system operations (won't do anything unless on-line)
-  sendAlive()
   for i = 1, reactorCount do
     pause = pollReactor(i, (bstate > 0), ctick) or pause
   end
