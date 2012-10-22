@@ -44,7 +44,7 @@ This outputs ~1800 EU per reactor.
 
 ![Video Preview](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/animation.gif)
 
-Full video can be viewed on my [YouTube Channel](http://www.youtube.com/watch?v=MTzRL2bmeRo "Direct link to video")
+Full video can be viewed on my [YouTube Channel video](http://www.youtube.com/watch?v=MTzRL2bmeRo "Direct link to video")
 
 ## nuke-stats
 Display stats from `nuke-controller`
@@ -58,6 +58,10 @@ Copy `nuke-stats.startup` to `/disk/startup` to automatically start (and update 
 ### Screenshots
 
 ![Power Plant Status Display Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-stats-screens/2012-09-26_22.26.13.png)
+
+### Videos and Demonstration
+
+Included in the video from nuke-controller section above. [This link skips directly to the status demonstration](http://youtu.be/MTzRL2bmeRo?t=2m13s "Direct link to video")
 
 ## dl-script
 Download a file from pastebin.com and save it on the console or disk.
