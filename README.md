@@ -24,7 +24,10 @@ Copy `nuke-controller.startup` to `/disk/startup` to automatically start (and up
 ### Instructions
 
 * Build according to schematics and correctly configure parameters and peripherals
+* Place a ccSensor with an IC2 Module Card near the core(s)
+* Set up your computer rig with a ccSensor Controller
 * Start the Application (described above)
+* Place ''ONE'' fuel-cell into reactor(s)
 * Click the connected button (ONCE) to start up reactors and initialize systems
 - The core should now be running
 * Click the connected button (ONCE -- again) to perform the shutdown procedure
