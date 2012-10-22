@@ -13,7 +13,7 @@ Handles monitoring, fueling and cooling of one or more nuclear reactors. This on
 
 See `nuke-schema.png`
 
-**NOTE:** This is only compatible with IC2 version 1.103, but a reconfiguration would make it compatible with latest revisions.
+**NOTE:** This is only compatible with IC2 version 1.103, but a reconfiguration would make it compatible with latest revisions (There has been some changes to the cooling procedures).
 
 ### Console Usage
 
