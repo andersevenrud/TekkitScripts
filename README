@@ -31,6 +31,9 @@ Copy `nuke-controller.startup` to `/disk/startup` to automatically start (and up
 
 The alarm will sound when first powering up the reactor and when the thermostat is triggered.
 
+Default configuration is set to 10 Cooling-cells and 44 Fuel-cells, max core-temp at 2000.
+This outputs ~1800 EU per reactor.
+
 ### Screenshots
 
 ![Power Plant Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-27_02.17.04.png)
