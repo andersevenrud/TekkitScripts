@@ -23,6 +23,7 @@ Copy `nuke-controller.startup` to `/disk/startup` to automatically start (and up
 
 ### Instructions
 
+* First check out the comments in the top of the source-file
 * Build according to schematics and correctly configure parameters and peripherals
 * Place a ccSensor with an IC2 Module Card near the core(s)
 * Set up your computer rig with a ccSensor Controller

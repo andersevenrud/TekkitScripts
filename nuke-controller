@@ -1,6 +1,25 @@
 -- Description: Nuclear Power Plant Controller
 -- Authors:     andersevenrud, larsmaehlum
 -- URL:         https://github.com/andersevenrud/TekkitScripts
+--
+--
+-- NOTES:
+--
+--     REMEMBER TO FIND OUT WHICH REACTOR IS WHICH (id) THEN
+--     CHECK WIRE ASSIGNMENTS BELOW IN CONFIG SECTION
+--
+--     FOR NON-SMP USAGE (for this configuration):'
+--       Set 'coolantTime' to '2'
+--       Set 'checkTicks' to '5'
+--       Set 'maxHeat' to '2500'
+--
+--     ALWAYS PLAYS x-configured AMMOUNT OF COOLANT AND 1 FUEL INTO 
+--     REACTOR(s) BEFORE POWERING ON!
+--
+--     IF YOU DO NOT USE AUTOSTART AND FORGET TO MANUALLY SHUT-DOWN
+--     REACTORS WHEN YOU LOG-OUT/RESTART -- KABOOM!
+--
+--
 
 -- 
 -- Configuration
