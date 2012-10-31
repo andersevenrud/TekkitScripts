@@ -39,6 +39,8 @@ This outputs ~1800 EU per reactor.
 
 **NOTE:** Current version requires you to insert a fuel-cell into reactor(s) after launching application.
 
+**NOTE:** You may have to tweak the settings depending on environment (default config is for SMP, others documented in source)
+
 ### Screenshots
 
 ![Power Plant Screenshot](https://raw.github.com/andersevenrud/TekkitScripts/master/nuke-controller-screens/2012-09-27_02.17.04.png)
