@@ -53,6 +53,9 @@ This outputs ~1800 EU per reactor.
 
 Full video can be viewed on my [YouTube Channel video](http://www.youtube.com/watch?v=MTzRL2bmeRo "Direct link to video")
 
+### World Download (Save game)
+You can download a fully working example build in `worlds/nuke-power-plant.zip`. This is not the same world as shown in the video (because it was recorded on a private SMP-server), but it is identical.
+
 ## nuke-stats
 Display stats from `nuke-controller`
 
